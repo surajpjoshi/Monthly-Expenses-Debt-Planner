@@ -1,362 +1,1643 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Monthly Expenses & Debt Planner</title>
-  <style>
-    body{font-family:Inter,Segoe UI,Roboto,Arial;margin:18px;background:#f7fafc;color:#0f172a}
-    h1{font-size:20px;margin-bottom:6px}
-    .grid{display:grid;gap:12px}
-    .row{display:flex;gap:8px}
-    input,select,button,textarea{padding:8px;border:1px solid #cbd5e1;border-radius:6px;font-size:14px}
-    table{width:100%;border-collapse:collapse;margin-top:8px}
-    th,td{padding:8px;border-bottom:1px solid #e2e8f0;text-align:left}
-    .card{background:white;padding:12px;border-radius:8px;box-shadow:0 1px 4px rgba(2,6,23,0.06)}
-    .muted{color:#64748b;font-size:13px}
-    .flex{display:flex;gap:8px;align-items:center}
-    .pill{background:#eef2ff;color:#3730a3;padding:6px 8px;border-radius:999px;font-weight:600}
-    .actions{display:flex;gap:8px}
-    .chart-wrap{height:260px}
-    @media(min-width:900px){.layout{display:grid;grid-template-columns:360px 1fr;gap:16px}}
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Expenses & Debt Planner</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --primary-dark: #3730a3;
+            --secondary: #f8fafc;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Inter', 'Segoe UI', Roboto, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .header-content h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .header-content h1:before {
+            content: "💰";
+            font-size: 32px;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .subtitle {
+            color: var(--text-light);
+            font-size: 16px;
+            max-width: 800px;
+        }
+        
+        .grid {
+            display: grid;
+            gap: 16px;
+        }
+        
+        .row {
+            display: flex;
+            gap: 12px;
+        }
+        
+        input, select, button, textarea {
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        
+        button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--hover-shadow);
+        }
+        
+        button.secondary {
+            background-color: white;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        
+        button.secondary:hover {
+            background-color: var(--secondary);
+        }
+        
+        button.success {
+            background-color: var(--success);
+        }
+        
+        button.success:hover {
+            background-color: #0da271;
+        }
+        
+        button.danger {
+            background-color: var(--danger);
+        }
+        
+        button.danger:hover {
+            background-color: #dc2626;
+        }
+        
+        button.warning {
+            background-color: var(--warning);
+        }
+        
+        button.warning:hover {
+            background-color: #d97706;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+        }
+        
+        th, td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+        
+        th {
+            background-color: var(--secondary);
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        tr:hover td {
+            background-color: rgba(79, 70, 229, 0.03);
+        }
+        
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--hover-shadow);
+        }
+        
+        .muted {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+        
+        .flex {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .pill {
+            background: #eef2ff;
+            color: var(--primary-dark);
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .chart-wrap {
+            height: 260px;
+            position: relative;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 8px 0;
+            color: var(--text);
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+        
+        .positive {
+            color: var(--success);
+        }
+        
+        .negative {
+            color: var(--danger);
+        }
+        
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        
+        .checkbox-container input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+        }
+        
+        .checkbox-label {
+            font-size: 14px;
+        }
+        
+        .expense-completed {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .section-title:before {
+            content: "";
+            display: block;
+            width: 4px;
+            height: 20px;
+            background-color: var(--primary);
+            border-radius: 2px;
+        }
+        
+        hr {
+            margin: 20px 0;
+            border: none;
+            border-top: 1px solid var(--border);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            background: var(--success);
+            color: white;
+            font-weight: 600;
+            box-shadow: var(--card-shadow);
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.warning {
+            background: var(--warning);
+        }
+        
+        .notification.danger {
+            background: var(--danger);
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--success);
+            transition: width 0.3s ease;
+        }
+        
+        .category-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .loan-progress {
+            margin-top: 16px;
+        }
+        
+        .loan-item {
+            margin-bottom: 12px;
+        }
+        
+        .loan-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        
+        .theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--card-shadow);
+            z-index: 100;
+        }
+        
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+        
+        .tab.active {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .search-box {
+            margin-bottom: 16px;
+        }
+        
+        @media (min-width: 1200px) {
+            .layout {
+                display: grid;
+                grid-template-columns: 400px 1fr;
+                gap: 24px;
+            }
+            
+            .wide-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .row {
+                flex-direction: column;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+        
+        /* Dark mode styles */
+        body.dark-mode {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: #e2e8f0;
+        }
+        
+        body.dark-mode .card {
+            background: #334155;
+            color: #e2e8f0;
+        }
+        
+        body.dark-mode .stat-card {
+            background: #475569;
+        }
+        
+        body.dark-mode table {
+            background: #334155;
+        }
+        
+        body.dark-mode th {
+            background: #475569;
+            color: #e2e8f0;
+        }
+        
+        body.dark-mode input, 
+        body.dark-mode select, 
+        body.dark-mode textarea {
+            background: #475569;
+            border-color: #64748b;
+            color: #e2e8f0;
+        }
+        
+        body.dark-mode .muted {
+            color: #94a3b8;
+        }
+    </style>
 </head>
 <body>
-  <h1>Monthly Expenses & Debt Planner</h1>
-  <div class="muted">Enter your loans, monthly expenses and salary — the planner will show totals, a recommended allocation and a simulated repayment plan.</div>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>Monthly Expenses & Debt Planner</h1>
+                <div class="subtitle">Track expenses, manage debt, and plan your financial future with powerful analytics</div>
+            </div>
+            <div class="header-actions">
+                <button id="saveData" class="success">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    Save Data
+                </button>
+                <button id="exportCsv" class="secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Export CSV
+                </button>
+                <button id="downloadHtml" class="secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Download HTML
+                </button>
+            </div>
+        </header>
 
-  <div class="layout" style="margin-top:12px">
-    <div class="card">
-      <strong>Salary (in-hand / month)</strong>
-      <div class="row" style="margin-top:8px">
-        <input id="salary" type="number" value="150000" />
-        <button id="saveSalary">Save</button>
-      </div>
+        <div class="layout">
+            <div>
+                <div class="card">
+                    <div class="section-title">Salary & Budget</div>
+                    <div class="row" style="margin-top: 8px">
+                        <input id="salary" type="number" value="150000" />
+                        <button id="saveSalary">Update</button>
+                    </div>
+                    
+                    <div style="margin-top: 12px">
+                        <label for="currency" class="muted">Currency:</label>
+                        <select id="currency" style="margin-top: 8px; width: 100%">
+                            <option value="INR">Indian Rupee (₹)</option>
+                            <option value="USD">US Dollar ($)</option>
+                            <option value="EUR">Euro (€)</option>
+                            <option value="GBP">British Pound (£)</option>
+                        </select>
+                    </div>
 
-      <hr style="margin:12px 0;border:none;border-top:1px solid #eef2f6">
+                    <hr>
 
-      <strong>Loans & Credit (add one by one)</strong>
-      <div style="margin-top:8px" class="grid">
-        <input id="loanName" placeholder="Name (e.g. ICICI Card)" />
-        <div class="row">
-          <input id="loanAmount" placeholder="Outstanding (₹)" type="number" />
-          <input id="loanEmi" placeholder="EMI / Due (₹)" type="number" />
+                    <div class="section-title">Loans & Credit</div>
+                    <div class="muted" style="margin-bottom: 12px">Add your loans one by one</div>
+                    <div class="grid">
+                        <input id="loanName" placeholder="Name (e.g. ICICI Card)" />
+                        <select id="loanType">
+                            <option value="Credit Card">Credit Card</option>
+                            <option value="Personal Loan">Personal Loan</option>
+                            <option value="Home Loan">Home Loan</option>
+                            <option value="Car Loan">Car Loan</option>
+                            <option value="Education Loan">Education Loan</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <div class="row">
+                            <input id="loanAmount" placeholder="Outstanding (₹)" type="number" />
+                            <input id="loanEmi" placeholder="EMI (₹)" type="number" />
+                        </div>
+                        <div class="row">
+                            <input id="interestRate" placeholder="Interest Rate %" type="number" step="0.1" />
+                            <input id="dueDate" type="number" min="1" max="31" placeholder="Due Date" />
+                        </div>
+                        <div class="actions">
+                            <button id="addLoan">Add Loan</button>
+                            <button id="prefillLoans" class="secondary">Prefill Example</button>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="section-title">Monthly Expenses</div>
+                    <div class="muted" style="margin-bottom: 12px">Add your monthly expenses</div>
+                    <div class="grid">
+                        <input id="expName" placeholder="Expense name (e.g. Vegetables)" />
+                        <select id="expCategory">
+                            <option value="Food">Food & Groceries</option>
+                            <option value="Utilities">Utilities</option>
+                            <option value="Transport">Transport</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Healthcare">Healthcare</option>
+                            <option value="Shopping">Shopping</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <input id="expAmount" placeholder="Amount (₹)" type="number" />
+                        <div class="actions">
+                            <button id="addExp">Add Expense</button>
+                            <button id="prefillExp" class="secondary">Prefill Example</button>
+                        </div>
+                    </div>
+
+                    <hr>
+                    
+                    <div class="section-title">Quick Actions</div>
+                    <div class="actions">
+                        <button id="clearCompleted" class="secondary">
+                            Clear Completed
+                        </button>
+                        <button id="calculateEmergency" class="secondary">
+                            Emergency Fund
+                        </button>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="muted">Your data is automatically saved in your browser. Use export to backup or transfer.</div>
+                    <div style="margin-top: 16px" class="actions">
+                        <button id="exportJson">Export JSON</button>
+                        <button id="importJson" class="secondary">Import JSON</button>
+                        <input id="fileIn" type="file" style="display:none" accept="application/json"/>
+                    </div>
+                </div>
+                
+                <div class="card" style="margin-top: 20px">
+                    <div class="section-title">Payment Reminders</div>
+                    <div id="remindersList">
+                        <!-- Reminders will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="tab-container">
+                    <div class="tab active" data-tab="overview">Overview</div>
+                    <div class="tab" data-tab="analytics">Analytics</div>
+                    <div class="tab" data-tab="planning">Planning</div>
+                </div>
+                
+                <!-- Overview Tab -->
+                <div class="tab-content active" id="overview-tab">
+                    <div class="card">
+                        <div style="display:flex;justify-content:space-between;align-items:center">
+                            <div>
+                                <div class="section-title">Financial Overview</div>
+                                <div class="muted">Totals, surplus and recommended allocations</div>
+                            </div>
+                            <div class="pill" id="monthLabel">Monthly View</div>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-label">Total EMIs</div>
+                                <div id="totalEmi" class="stat-value">₹0</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Monthly Expenses</div>
+                                <div id="totalExp" class="stat-value">₹0</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Total Outflow</div>
+                                <div id="totalOut" class="stat-value">₹0</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Salary (in-hand)</div>
+                                <div id="salaryShow" class="stat-value">₹0</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Surplus</div>
+                                <div id="surplus" class="stat-value">₹0</div>
+                            </div>
+                        </div>
+
+                        <hr>
+                        
+                        <div class="section-title">Recommended Allocations</div>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-label">Emergency Buffer</div>
+                                <div id="recEmergency" class="stat-value">₹10,000</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Extra Repayment</div>
+                                <div id="recExtra" class="stat-value">₹25,000</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Savings & Investment</div>
+                                <div id="recSave" class="stat-value">₹6,800</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top: 20px">
+                        <div class="section-title">Loans & Expenses</div>
+                        <div class="muted" style="margin-bottom: 12px">Editable list of your loans and expenses</div>
+                        
+                        <div class="search-box">
+                            <input type="text" id="searchInput" placeholder="Search loans or expenses..." style="width: 100%">
+                        </div>
+                        
+                        <table id="loanTable">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th>Outstanding</th>
+                                    <th>EMI</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+
+                        <table id="expTable" style="margin-top: 16px">
+                            <thead>
+                                <tr>
+                                    <th>Completed</th>
+                                    <th>Expense</th>
+                                    <th>Category</th>
+                                    <th>Amount</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Analytics Tab -->
+                <div class="tab-content" id="analytics-tab">
+                    <div class="card">
+                        <div class="section-title">Spending Analytics</div>
+                        <div class="chart-wrap">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card" style="margin-top: 20px">
+                        <div class="section-title">Loan Progress</div>
+                        <div id="loanProgress" class="loan-progress">
+                            <!-- Loan progress bars will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <div class="card" style="margin-top: 20px">
+                        <div class="section-title">Net Worth</div>
+                        <div class="chart-wrap">
+                            <canvas id="netWorthChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Planning Tab -->
+                <div class="tab-content" id="planning-tab">
+                    <div class="card">
+                        <div class="section-title">Repayment Simulation</div>
+                        <div class="muted">Simulation uses the priority order: Credit Cards → Personal Loans → Other Loans → Home Loans.</div>
+                        <div style="margin-top: 16px" class="row">
+                            <input id="extraPay" type="number" value="25000" placeholder="Extra payment amount" />
+                            <button id="runSim">Run Simulation</button>
+                        </div>
+                        <div class="chart-wrap" style="margin-top: 16px">
+                            <canvas id="debtChart"></canvas>
+                        </div>
+                        <div id="simSummary" style="margin-top: 16px"></div>
+                    </div>
+
+                    <div class="card" style="margin-top: 20px">
+                        <div class="section-title">Month-by-month Table</div>
+                        <div class="muted">This shows when each loan is expected to close under the simulation assumptions.</div>
+                        <table id="closureTable">
+                            <thead>
+                                <tr>
+                                    <th>Loan</th>
+                                    <th>Start</th>
+                                    <th>Close (month)</th>
+                                    <th>Months</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="card" style="margin-top: 20px">
+                        <div class="section-title">Investment Calculator</div>
+                        <div class="grid">
+                            <input id="investmentAmount" placeholder="Monthly Investment (₹)" type="number" value="10000" />
+                            <input id="investmentYears" placeholder="Years" type="number" value="10" />
+                            <input id="investmentReturn" placeholder="Expected Return %" type="number" value="12" step="0.1" />
+                            <button id="calculateInvestment">Calculate</button>
+                        </div>
+                        <div id="investmentResult" style="margin-top: 16px"></div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="actions">
-          <button id="addLoan">Add Loan</button>
-          <button id="prefillLoans">Prefill Your Data</button>
-        </div>
-      </div>
-
-      <hr style="margin:12px 0;border:none;border-top:1px solid #eef2f6">
-
-      <strong>Monthly Expenses</strong>
-      <div style="margin-top:8px" class="grid">
-        <input id="expName" placeholder="Expense name (e.g. Vegetables)" />
-        <input id="expAmount" placeholder="Amount (₹)" type="number" />
-        <div class="actions">
-          <button id="addExp">Add Expense</button>
-          <button id="prefillExp">Prefill Your Data</button>
-        </div>
-      </div>
-
-      <hr style="margin:12px 0;border:none;border-top:1px solid #eef2f6">
-      <div class="muted">Storage: this page saves your data in your browser (localStorage). Use export/import to move the plan to another device.</div>
-      <div style="margin-top:8px" class="actions">
-        <button id="exportJson">Export JSON</button>
-        <button id="importJson">Import JSON</button>
-        <input id="fileIn" type="file" style="display:none" accept="application/json"/>
-      </div>
     </div>
 
-    <div>
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div>
-            <strong>Overview</strong>
-            <div class="muted">Totals, surplus and recommended allocations</div>
-          </div>
-          <div class="pill" id="monthLabel">Monthly</div>
-        </div>
-
-        <div style="margin-top:12px;display:flex;gap:12px;flex-wrap:wrap">
-          <div style="min-width:160px">
-            <div class="muted">Total EMIs</div>
-            <div id="totalEmi" style="font-size:18px;font-weight:700">₹0</div>
-          </div>
-          <div style="min-width:160px">
-            <div class="muted">Monthly Expenses</div>
-            <div id="totalExp" style="font-size:18px;font-weight:700">₹0</div>
-          </div>
-          <div style="min-width:160px">
-            <div class="muted">Total Outflow</div>
-            <div id="totalOut" style="font-size:18px;font-weight:700">₹0</div>
-          </div>
-          <div style="min-width:160px">
-            <div class="muted">Salary (in-hand)</div>
-            <div id="salaryShow" style="font-size:18px;font-weight:700">₹0</div>
-          </div>
-          <div style="min-width:160px">
-            <div class="muted">Surplus</div>
-            <div id="surplus" style="font-size:18px;font-weight:700">₹0</div>
-          </div>
-        </div>
-
-        <hr style="margin:12px 0;border:none;border-top:1px solid #eef2f6">
-        <div style="display:flex;gap:12px;flex-wrap:wrap">
-          <div style="min-width:140px">
-            <div class="muted">Recommended Emergency Buffer</div>
-            <div id="recEmergency">₹10,000</div>
-          </div>
-          <div style="min-width:140px">
-            <div class="muted">Recommended Extra Repayment</div>
-            <div id="recExtra">₹25,000</div>
-          </div>
-          <div style="min-width:140px">
-            <div class="muted">Recommended Savings</div>
-            <div id="recSave">₹6,800</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:12px">
-        <strong>Loans & Expenses (editable)</strong>
-        <table id="loanTable"><thead><tr><th>Name</th><th>Outstanding (₹)</th><th>EMI (₹)</th><th></th></tr></thead><tbody></tbody></table>
-
-        <table id="expTable" style="margin-top:8px"><thead><tr><th>Expense</th><th>Amount (₹)</th><th></th></tr></thead><tbody></tbody></table>
-      </div>
-
-      <div class="card" style="margin-top:12px">
-        <strong>Repayment Simulation</strong>
-        <div class="muted">Simulation uses the priority order: Credit Cards → Personal Loans → Other Loans → Home Loans. You can change priority in the table by dragging (not implemented) but you can edit names to reorder.</div>
-        <div style="margin-top:8px" class="row">
-          <input id="extraPay" type="number" value="25000" />
-          <button id="runSim">Run Simulation</button>
-        </div>
-        <div class="chart-wrap" style="margin-top:12px">
-          <canvas id="debtChart"></canvas>
-        </div>
-        <div id="simSummary" style="margin-top:10px"></div>
-      </div>
-
-      <div class="card" style="margin-top:12px">
-        <strong>Month-by-month Table</strong>
-        <div class="muted">This shows when each loan is expected to close under the simulation assumptions.</div>
-        <table id="closureTable"><thead><tr><th>Loan</th><th>Start</th><th>Close (month)</th><th>Months</th></tr></thead><tbody></tbody></table>
-      </div>
+    <div class="theme-toggle" id="themeToggle">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
     </div>
-  </div>
 
-  <script>
-    // Simple storage keys
-    const KEY = 'debtPlanner.v1'
+    <div id="notification" class="notification">Data saved successfully!</div>
 
-    // Default data (prefill from user's earlier inputs)
-    const defaultData = {
-      salary: 150000,
-      loans: [
-        {name:'HDFC Credit Card', amount:30000, emi:1000},
-        {name:'ICICI Credit Card', amount:145000, emi:8500},
-        {name:'ICICI Home Loan', amount:3000000, emi:30000},
-        {name:'IDFC Home Loan', amount:2000000, emi:21000},
-        {name:'Bajaj Finance Loan', amount:1700000, emi:20500},
-        {name:'ICICI Personal Loan', amount:250000, emi:4500},
-        {name:'Kotak Personal Loan', amount:300000, emi:8500}
-      ],
-      expenses: [
-        {name:'Vegetables', amount:2000},
-        {name:'Balaji', amount:6000},
-        {name:'Light Bill', amount:2000},
-        {name:'Internet', amount:1200},
-        {name:'Oil', amount:1000},
-        {name:'Rupa', amount:1000},
-        {name:'RD', amount:1000}
-      ]
-    }
+    <script>
+        // Simple storage keys
+        const KEY = 'debtPlanner.v3'
 
-    function load(){
-      const raw = localStorage.getItem(KEY)
-      if(!raw){localStorage.setItem(KEY, JSON.stringify(defaultData));return defaultData}
-      try{return JSON.parse(raw)}catch(e){localStorage.setItem(KEY, JSON.stringify(defaultData));return defaultData}
-    }
-
-    function save(data){localStorage.setItem(KEY, JSON.stringify(data));render()}
-
-    let data = load()
-
-    // DOM refs
-    const loanTbody = document.querySelector('#loanTable tbody')
-    const expTbody = document.querySelector('#expTable tbody')
-    const totalEmiEl = document.getElementById('totalEmi')
-    const totalExpEl = document.getElementById('totalExp')
-    const totalOutEl = document.getElementById('totalOut')
-    const salaryShow = document.getElementById('salaryShow')
-    const surplusEl = document.getElementById('surplus')
-    const recEmergency = document.getElementById('recEmergency')
-    const recExtra = document.getElementById('recExtra')
-    const recSave = document.getElementById('recSave')
-    const debtChartCtx = document.getElementById('debtChart').getContext('2d')
-    const closureTbody = document.querySelector('#closureTable tbody')
-
-    // Chart
-    let debtChart = new Chart(debtChartCtx, {type:'line', data:{labels:[],datasets:[{label:'Total outstanding (₹)',data:[],fill:false,tension:0.2}]},options:{scales:{y:{beginAtZero:false}}}})
-
-    function render(){
-      data = load()
-      // loans
-      loanTbody.innerHTML=''
-      let totalEmi = 0, totalLoans=0
-      data.loans.forEach((l,i)=>{
-        totalEmi += Number(l.emi||0)
-        totalLoans += Number(l.amount||0)
-        const tr = document.createElement('tr')
-        tr.innerHTML = `<td><input value="${l.name}" data-i="${i}" class="editName"/></td><td><input type=number value="${l.amount}" data-i="${i}" class="editAmt"/></td><td><input type=number value="${l.emi}" data-i="${i}" class="editEmi"/></td><td><button data-i="${i}" class="delLoan">Delete</button></td>`
-        loanTbody.appendChild(tr)
-      })
-
-      // expenses
-      expTbody.innerHTML=''
-      let totalExp = 0
-      data.expenses.forEach((e,i)=>{
-        totalExp += Number(e.amount||0)
-        const tr = document.createElement('tr')
-        tr.innerHTML = `<td><input value="${e.name}" data-i="${i}" class="editExpName"/></td><td><input type=number value="${e.amount}" data-i="${i}" class="editExpAmt"/></td><td><button data-i="${i}" class="delExp">Delete</button></td>`
-        expTbody.appendChild(tr)
-      })
-
-      document.getElementById('salary').value = data.salary
-
-      totalEmiEl.textContent = '₹' + numberWithCommas(totalEmi)
-      totalExpEl.textContent = '₹' + numberWithCommas(totalExp)
-      totalOutEl.textContent = '₹' + numberWithCommas(totalExp + totalEmi)
-      salaryShow.textContent = '₹' + numberWithCommas(data.salary)
-      surplusEl.textContent = '₹' + numberWithCommas(data.salary - (totalExp + totalEmi))
-
-      recEmergency.textContent = '₹' + numberWithCommas(Math.round((totalExp + totalEmi) * 0.10))
-      recExtra.textContent = '₹' + numberWithCommas(25000)
-      recSave.textContent = '₹' + numberWithCommas(Math.max(0, data.salary - (totalExp + totalEmi) - 25000))
-
-      // attach events for inline edits
-      document.querySelectorAll('.editName').forEach(inp=>inp.onchange = e=>{data.loans[e.target.dataset.i].name = e.target.value; save(data)})
-      document.querySelectorAll('.editAmt').forEach(inp=>inp.onchange = e=>{data.loans[e.target.dataset.i].amount = Number(e.target.value); save(data)})
-      document.querySelectorAll('.editEmi').forEach(inp=>inp.onchange = e=>{data.loans[e.target.dataset.i].emi = Number(e.target.value); save(data)})
-      document.querySelectorAll('.delLoan').forEach(b=>b.onclick=e=>{data.loans.splice(e.target.dataset.i,1); save(data)})
-
-      document.querySelectorAll('.editExpName').forEach(inp=>inp.onchange = e=>{data.expenses[e.target.dataset.i].name = e.target.value; save(data)})
-      document.querySelectorAll('.editExpAmt').forEach(inp=>inp.onchange = e=>{data.expenses[e.target.dataset.i].amount = Number(e.target.value); save(data)})
-      document.querySelectorAll('.delExp').forEach(b=>b.onclick=e=>{data.expenses.splice(e.target.dataset.i,1); save(data)})
-
-      // clear closure table and chart
-      closureTbody.innerHTML = ''
-      debtChart.data.labels = []
-      debtChart.data.datasets[0].data = []
-      debtChart.update()
-    }
-
-    // helpers
-    function numberWithCommas(x){if(x==null) return '0';return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-
-    // add handlers
-    document.getElementById('addLoan').onclick = ()=>{
-      const name = document.getElementById('loanName').value.trim();
-      const amount = Number(document.getElementById('loanAmount').value)||0;
-      const emi = Number(document.getElementById('loanEmi').value)||0;
-      if(!name) return alert('Enter loan name')
-      data.loans.push({name,amount,emi});save(data)
-      document.getElementById('loanName').value='';document.getElementById('loanAmount').value='';document.getElementById('loanEmi').value=''
-    }
-
-    document.getElementById('addExp').onclick = ()=>{
-      const name = document.getElementById('expName').value.trim();
-      const amount = Number(document.getElementById('expAmount').value)||0;
-      if(!name) return alert('Enter expense name')
-      data.expenses.push({name,amount});save(data)
-      document.getElementById('expName').value='';document.getElementById('expAmount').value=''
-    }
-
-    document.getElementById('saveSalary').onclick = ()=>{data.salary = Number(document.getElementById('salary').value)||0; save(data)}
-
-    document.getElementById('prefillLoans').onclick = ()=>{data.loans = defaultData.loans.slice(); save(data)}
-    document.getElementById('prefillExp').onclick = ()=>{data.expenses = defaultData.expenses.slice(); save(data)}
-
-    // export/import
-    document.getElementById('exportJson').onclick = ()=>{
-      const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href=url; a.download='debt-plan.json'; a.click(); URL.revokeObjectURL(url)
-    }
-    document.getElementById('importJson').onclick = ()=> document.getElementById('fileIn').click()
-    document.getElementById('fileIn').onchange = (e)=>{
-      const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = ()=>{try{data = JSON.parse(r.result); save(data); alert('Imported')}catch(err){alert('Invalid JSON')}}; r.readAsText(f)
-    }
-
-    // Simulation engine (simplified: pays EMI + extra to first non-zero debt in priority order)
-    function runSimulation(extra){
-      // copy loans
-      const loans = data.loans.map(l=>({name:l.name,amount:Math.max(0,Number(l.amount)||0),emi:Math.max(0,Number(l.emi)||0)}))
-      // define priority: try to put credit card and personal by name heuristics
-      loans.sort((a,b)=>{
-        const score = (s)=>{s=s.toLowerCase(); if(s.includes('card')||s.includes('credit')) return 1; if(s.includes('personal')||s.includes('pl')||s.includes('finance')) return 2; if(s.includes('bajaj')) return 3; if(s.includes('home')||s.includes('hl')) return 4; return 3}
-        return score(a.name)-score(b.name)
-      })
-
-      const months = []
-      let month=0
-      while(loans.some(l=>l.amount>0) && month<240){
-        month++
-        let extraBudget = extra
-        // pay each loan its EMI first
-        loans.forEach(l=>{
-          if(l.amount<=0) return;
-          const pay = Math.min(l.amount, l.emi)
-          l.amount -= pay
-        })
-        // apply extra budget to highest priority (first non-zero)
-        for(const l of loans){
-          if(l.amount>0 && extraBudget>0){
-            const pay = Math.min(l.amount, extraBudget)
-            l.amount -= pay
-            extraBudget -= pay
-          }
+        // Default data (prefill from user's earlier inputs)
+        const defaultData = {
+            salary: 150000,
+            currency: 'INR',
+            loans: [
+                {name:'HDFC Credit Card', type: 'Credit Card', amount:30000, emi:1000, interest: 18, dueDate: 15},
+                {name:'ICICI Credit Card', type: 'Credit Card', amount:145000, emi:8500, interest: 16, dueDate: 5},
+                {name:'ICICI Home Loan', type: 'Home Loan', amount:3000000, emi:30000, interest: 8.5, dueDate: 10},
+                {name:'IDFC Home Loan', type: 'Home Loan', amount:2000000, emi:21000, interest: 8.7, dueDate: 12},
+                {name:'Bajaj Finance Loan', type: 'Personal Loan', amount:1700000, emi:20500, interest: 12, dueDate: 20},
+                {name:'ICICI Personal Loan', type: 'Personal Loan', amount:250000, emi:4500, interest: 11.5, dueDate: 8},
+                {name:'Kotak Personal Loan', type: 'Personal Loan', amount:300000, emi:8500, interest: 13, dueDate: 25}
+            ],
+            expenses: [
+                {name:'Vegetables', category: 'Food', amount:2000, completed: false},
+                {name:'Balaji', category: 'Food', amount:6000, completed: false},
+                {name:'Light Bill', category: 'Utilities', amount:2000, completed: true},
+                {name:'Internet', category: 'Utilities', amount:1200, completed: false},
+                {name:'Oil', category: 'Transport', amount:1000, completed: false},
+                {name:'Rupa', category: 'Shopping', amount:1000, completed: false},
+                {name:'RD', category: 'Other', amount:1000, completed: false}
+            ],
+            settings: {
+                darkMode: false
+            }
         }
-        const totalOutstanding = loans.reduce((s,l)=>s + Math.max(0,Math.round(l.amount)),0)
-        months.push({month,totalOutstanding,loans:JSON.parse(JSON.stringify(loans))})
-      }
-      return months
-    }
 
-    document.getElementById('runSim').onclick = ()=>{
-      const extra = Number(document.getElementById('extraPay').value) || 0
-      const months = runSimulation(extra)
-      // update chart
-      debtChart.data.labels = months.map(m=>'M'+m.month)
-      debtChart.data.datasets[0].data = months.map(m=>m.totalOutstanding)
-      debtChart.update()
+        // Expense categories with colors
+        const expenseCategories = {
+            'Food': { color: '#ef4444', icon: '🍕' },
+            'Utilities': { color: '#f59e0b', icon: '💡' },
+            'Transport': { color: '#10b981', icon: '🚗' },
+            'Entertainment': { color: '#3b82f6', icon: '🎬' },
+            'Healthcare': { color: '#8b5cf6', icon: '🏥' },
+            'Shopping': { color: '#ec4899', icon: '🛍️' },
+            'Other': { color: '#64748b', icon: '📦' }
+        };
 
-      // summary
-      const last = months[months.length-1]
-      document.getElementById('simSummary').innerHTML = `<div class=muted>Simulated ${months.length} months. Outstanding at end: ₹${numberWithCommas(last?last.totalOutstanding:0)}</div>`
+        // Loan types with colors
+        const loanTypes = {
+            'Credit Card': { color: '#ef4444', priority: 1 },
+            'Personal Loan': { color: '#f59e0b', priority: 2 },
+            'Car Loan': { color: '#10b981', priority: 3 },
+            'Education Loan': { color: '#3b82f6', priority: 4 },
+            'Home Loan': { color: '#8b5cf6', priority: 5 },
+            'Other': { color: '#64748b', priority: 6 }
+        };
 
-      // closure table
-      closureTbody.innerHTML = ''
-      if(months.length>0){
-        const firstLoanNames = months[0].loans.map(l=>l.name)
-        firstLoanNames.forEach((name, idx)=>{
-          // find first month when that loan.amount becomes 0
-          let closeMonth = null
-          for(const m of months){
-            if(m.loans[idx].amount<=0){closeMonth = m.month; break}
-          }
-          const tr = document.createElement('tr')
-          tr.innerHTML = `<td>${name}</td><td>0</td><td>${closeMonth||'—'}</td><td>${closeMonth?closeMonth:'—'}</td>`
-          closureTbody.appendChild(tr)
-        })
-      }
-    }
+        function load(){
+            const raw = localStorage.getItem(KEY)
+            if(!raw){localStorage.setItem(KEY, JSON.stringify(defaultData));return defaultData}
+            try{return JSON.parse(raw)}catch(e){localStorage.setItem(KEY, JSON.stringify(defaultData));return defaultData}
+        }
 
-    // initial render
-    render()
-  </script>
+        function save(data){localStorage.setItem(KEY, JSON.stringify(data));render();showNotification('Data saved successfully!')}
+
+        let data = load()
+
+        // DOM refs
+        const loanTbody = document.querySelector('#loanTable tbody')
+        const expTbody = document.querySelector('#expTable tbody')
+        const totalEmiEl = document.getElementById('totalEmi')
+        const totalExpEl = document.getElementById('totalExp')
+        const totalOutEl = document.getElementById('totalOut')
+        const salaryShow = document.getElementById('salaryShow')
+        const surplusEl = document.getElementById('surplus')
+        const recEmergency = document.getElementById('recEmergency')
+        const recExtra = document.getElementById('recExtra')
+        const recSave = document.getElementById('recSave')
+        const debtChartCtx = document.getElementById('debtChart').getContext('2d')
+        const categoryChartCtx = document.getElementById('categoryChart').getContext('2d')
+        const netWorthChartCtx = document.getElementById('netWorthChart').getContext('2d')
+        const closureTbody = document.querySelector('#closureTable tbody')
+        const loanProgress = document.getElementById('loanProgress')
+        const remindersList = document.getElementById('remindersList')
+
+        // Charts
+        let debtChart, categoryChart, netWorthChart;
+
+        function initCharts() {
+            // Debt Chart
+            debtChart = new Chart(debtChartCtx, {
+                type:'line', 
+                data:{
+                    labels:[],
+                    datasets:[
+                        {
+                            label:'Total outstanding',
+                            data:[],
+                            fill: true,
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            borderColor: 'rgba(79, 70, 229, 1)',
+                            tension:0.2,
+                            pointBackgroundColor: 'rgba(79, 70, 229, 1)',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4
+                        }
+                    ]
+                },
+                options:{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    },
+                    scales:{
+                        y:{
+                            beginAtZero:false,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return getCurrencySymbol() + numberWithCommas(value);
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Category Chart
+            categoryChart = new Chart(categoryChartCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Net Worth Chart
+            netWorthChart = new Chart(netWorthChartCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Assets', 'Liabilities', 'Net Worth'],
+                    datasets: [{
+                        label: 'Amount',
+                        data: [0, 0, 0],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.7)',
+                            'rgba(239, 68, 68, 0.7)',
+                            'rgba(79, 70, 229, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(16, 185, 129)',
+                            'rgb(239, 68, 68)',
+                            'rgb(79, 70, 229)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return getCurrencySymbol() + numberWithCommas(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function render(){
+            data = load()
+            
+            // Apply theme
+            if (data.settings.darkMode) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+            
+            // Set currency
+            document.getElementById('currency').value = data.currency || 'INR';
+
+            // loans
+            loanTbody.innerHTML=''
+            let totalEmi = 0, totalLoans=0
+            data.loans.forEach((l,i)=>{
+                totalEmi += Number(l.emi||0)
+                totalLoans += Number(l.amount||0)
+                const tr = document.createElement('tr')
+                tr.innerHTML = `
+                    <td><input value="${l.name}" data-i="${i}" class="editName"/></td>
+                    <td>
+                        <select data-i="${i}" class="editLoanType">
+                            ${Object.keys(loanTypes).map(type => 
+                                `<option value="${type}" ${l.type === type ? 'selected' : ''}>${type}</option>`
+                            ).join('')}
+                        </select>
+                    </td>
+                    <td><input type=number value="${l.amount}" data-i="${i}" class="editAmt"/></td>
+                    <td><input type=number value="${l.emi}" data-i="${i}" class="editEmi"/></td>
+                    <td><button data-i="${i}" class="delLoan danger">Delete</button></td>
+                `
+                loanTbody.appendChild(tr)
+            })
+
+            // expenses
+            expTbody.innerHTML=''
+            let totalExp = 0
+            data.expenses.forEach((e,i)=>{
+                // Only count non-completed expenses in the total
+                if (!e.completed) {
+                    totalExp += Number(e.amount||0)
+                }
+                
+                const tr = document.createElement('tr')
+                tr.innerHTML = `
+                    <td>
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="exp-check-${i}" data-i="${i}" class="expense-checkbox" ${e.completed ? 'checked' : ''}>
+                        </div>
+                    </td>
+                    <td>
+                        <input value="${e.name}" data-i="${i}" class="editExpName ${e.completed ? 'expense-completed' : ''}" ${e.completed ? 'disabled' : ''}/>
+                    </td>
+                    <td>
+                        <select data-i="${i}" class="editExpCategory">
+                            ${Object.keys(expenseCategories).map(cat => 
+                                `<option value="${cat}" ${e.category === cat ? 'selected' : ''}>${expenseCategories[cat].icon} ${cat}</option>`
+                            ).join('')}
+                        </select>
+                    </td>
+                    <td>
+                        <input type=number value="${e.amount}" data-i="${i}" class="editExpAmt ${e.completed ? 'expense-completed' : ''}" ${e.completed ? 'disabled' : ''}/>
+                    </td>
+                    <td><button data-i="${i}" class="delExp danger">Delete</button></td>
+                `
+                expTbody.appendChild(tr)
+            })
+
+            document.getElementById('salary').value = data.salary
+
+            const currencySymbol = getCurrencySymbol();
+            
+            totalEmiEl.textContent = currencySymbol + numberWithCommas(totalEmi)
+            totalExpEl.textContent = currencySymbol + numberWithCommas(totalExp)
+            totalOutEl.textContent = currencySymbol + numberWithCommas(totalExp + totalEmi)
+            salaryShow.textContent = currencySymbol + numberWithCommas(data.salary)
+            
+            const surplus = data.salary - (totalExp + totalEmi)
+            surplusEl.textContent = currencySymbol + numberWithCommas(surplus)
+            surplusEl.className = surplus >= 0 ? 'stat-value positive' : 'stat-value negative'
+
+            recEmergency.textContent = currencySymbol + numberWithCommas(Math.round((totalExp + totalEmi) * 0.10))
+            recExtra.textContent = currencySymbol + numberWithCommas(25000)
+            recSave.textContent = currencySymbol + numberWithCommas(Math.max(0, data.salary - (totalExp + totalEmi) - 25000))
+
+            // attach events for inline edits
+            document.querySelectorAll('.editName').forEach(inp=>inp.onchange = e=>{data.loans[e.target.dataset.i].name = e.target.value; save(data)})
+            document.querySelectorAll('.editAmt').forEach(inp=>inp.onchange = e=>{data.loans[e.target.dataset.i].amount = Number(e.target.value); save(data)})
+            document.querySelectorAll('.editEmi').forEach(inp=>inp.onchange = e=>{data.loans[e.target.dataset.i].emi = Number(e.target.value); save(data)})
+            document.querySelectorAll('.editLoanType').forEach(inp=>inp.onchange = e=>{data.loans[e.target.dataset.i].type = e.target.value; save(data)})
+            document.querySelectorAll('.delLoan').forEach(b=>b.onclick=e=>{data.loans.splice(e.target.dataset.i,1); save(data)})
+
+            document.querySelectorAll('.editExpName').forEach(inp=>inp.onchange = e=>{data.expenses[e.target.dataset.i].name = e.target.value; save(data)})
+            document.querySelectorAll('.editExpAmt').forEach(inp=>inp.onchange = e=>{data.expenses[e.target.dataset.i].amount = Number(e.target.value); save(data)})
+            document.querySelectorAll('.editExpCategory').forEach(inp=>inp.onchange = e=>{data.expenses[e.target.dataset.i].category = e.target.value; save(data)})
+            document.querySelectorAll('.delExp').forEach(b=>b.onclick=e=>{data.expenses.splice(e.target.dataset.i,1); save(data)})
+            
+            // Add event listeners for expense checkboxes
+            document.querySelectorAll('.expense-checkbox').forEach(checkbox => {
+                checkbox.onchange = e => {
+                    const index = e.target.dataset.i;
+                    data.expenses[index].completed = e.target.checked;
+                    save(data);
+                }
+            });
+
+            // Update charts and visualizations
+            updateCategoryChart();
+            updateLoanProgress();
+            updateNetWorthChart();
+            updatePaymentReminders();
+
+            // clear closure table and chart
+            closureTbody.innerHTML = ''
+            if (debtChart) {
+                debtChart.data.labels = []
+                debtChart.data.datasets[0].data = []
+                debtChart.update()
+            }
+        }
+
+        // helpers
+        function numberWithCommas(x){if(x==null) return '0';return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+        
+        function getCurrencySymbol() {
+            const currency = data.currency || 'INR';
+            switch(currency) {
+                case 'USD': return '$';
+                case 'EUR': return '€';
+                case 'GBP': return '£';
+                default: return '₹';
+            }
+        }
+        
+        // Notification function
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Update category chart
+        function updateCategoryChart() {
+            const categories = {...expenseCategories};
+            Object.keys(categories).forEach(key => {
+                categories[key].total = 0;
+            });
+            
+            data.expenses.forEach(expense => {
+                if (!expense.completed && categories[expense.category]) {
+                    categories[expense.category].total += expense.amount;
+                }
+            });
+            
+            const labels = [];
+            const dataValues = [];
+            const backgroundColors = [];
+            
+            Object.keys(categories).forEach(key => {
+                if (categories[key].total > 0) {
+                    labels.push(key);
+                    dataValues.push(categories[key].total);
+                    backgroundColors.push(categories[key].color);
+                }
+            });
+            
+            if (categoryChart) {
+                categoryChart.data.labels = labels;
+                categoryChart.data.datasets[0].data = dataValues;
+                categoryChart.data.datasets[0].backgroundColor = backgroundColors;
+                categoryChart.update();
+            }
+        }
+        
+        // Update loan progress
+        function updateLoanProgress() {
+            loanProgress.innerHTML = '';
+            
+            data.loans.forEach(loan => {
+                const progress = Math.max(0, Math.min(100, 100 - (loan.amount / (loan.amount + loan.emi * 12)) * 100));
+                
+                const loanItem = document.createElement('div');
+                loanItem.className = 'loan-item';
+                loanItem.innerHTML = `
+                    <div class="loan-header">
+                        <span>${loan.name}</span>
+                        <span>${getCurrencySymbol()}${numberWithCommas(loan.amount)}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progress}%"></div>
+                    </div>
+                `;
+                
+                loanProgress.appendChild(loanItem);
+            });
+        }
+        
+        // Update net worth chart
+        function updateNetWorthChart() {
+            const totalLiabilities = data.loans.reduce((sum, loan) => sum + loan.amount, 0);
+            // For demo purposes, assuming assets are 2x liabilities (this would come from user input in a real app)
+            const totalAssets = totalLiabilities * 2;
+            const netWorth = totalAssets - totalLiabilities;
+            
+            if (netWorthChart) {
+                netWorthChart.data.datasets[0].data = [totalAssets, totalLiabilities, netWorth];
+                netWorthChart.update();
+            }
+        }
+        
+        // Update payment reminders
+        function updatePaymentReminders() {
+            remindersList.innerHTML = '';
+            const today = new Date();
+            const currentDate = today.getDate();
+            
+            data.loans.forEach(loan => {
+                if (loan.dueDate) {
+                    const daysUntilDue = loan.dueDate - currentDate;
+                    if (daysUntilDue <= 7 && daysUntilDue >= 0) {
+                        const reminder = document.createElement('div');
+                        reminder.className = 'stat-card';
+                        reminder.innerHTML = `
+                            <div class="stat-label">${loan.name}</div>
+                            <div class="stat-value ${daysUntilDue <= 3 ? 'negative' : 'warning'}">
+                                Due in ${daysUntilDue} day${daysUntilDue !== 1 ? 's' : ''}
+                            </div>
+                            <div class="muted">Amount: ${getCurrencySymbol()}${numberWithCommas(loan.emi)}</div>
+                        `;
+                        remindersList.appendChild(reminder);
+                    }
+                }
+            });
+            
+            if (remindersList.children.length === 0) {
+                remindersList.innerHTML = '<div class="muted">No upcoming payments due in the next 7 days</div>';
+            }
+        }
+
+        // add handlers
+        document.getElementById('addLoan').onclick = ()=>{
+            const name = document.getElementById('loanName').value.trim();
+            const type = document.getElementById('loanType').value;
+            const amount = Number(document.getElementById('loanAmount').value)||0;
+            const emi = Number(document.getElementById('loanEmi').value)||0;
+            const interest = Number(document.getElementById('interestRate').value)||0;
+            const dueDate = Number(document.getElementById('dueDate').value)||0;
+            
+            if(!name) return alert('Enter loan name')
+            data.loans.push({name, type, amount, emi, interest, dueDate});save(data)
+            document.getElementById('loanName').value='';
+            document.getElementById('loanAmount').value='';
+            document.getElementById('loanEmi').value='';
+            document.getElementById('interestRate').value='';
+            document.getElementById('dueDate').value='';
+        }
+
+        document.getElementById('addExp').onclick = ()=>{
+            const name = document.getElementById('expName').value.trim();
+            const category = document.getElementById('expCategory').value;
+            const amount = Number(document.getElementById('expAmount').value)||0;
+            if(!name) return alert('Enter expense name')
+            data.expenses.push({name, category, amount, completed: false});save(data)
+            document.getElementById('expName').value='';
+            document.getElementById('expAmount').value='';
+        }
+
+        document.getElementById('saveSalary').onclick = ()=>{data.salary = Number(document.getElementById('salary').value)||0; save(data)}
+        
+        // Save data button
+        document.getElementById('saveData').onclick = () => {
+            save(data);
+        }
+        
+        // Clear completed expenses
+        document.getElementById('clearCompleted').onclick = () => {
+            if(confirm('Remove all completed expenses?')) {
+                data.expenses = data.expenses.filter(exp => !exp.completed);
+                save(data);
+            }
+        }
+        
+        // Calculate emergency fund
+        document.getElementById('calculateEmergency').onclick = () => {
+            const totalExpenses = data.expenses
+                .filter(exp => !exp.completed)
+                .reduce((sum, exp) => sum + exp.amount, 0);
+            const totalEmi = data.loans.reduce((sum, loan) => sum + loan.emi, 0);
+            const emergencyFund = Math.round((totalExpenses + totalEmi) * 3);
+            
+            showNotification(`Recommended emergency fund: ${getCurrencySymbol()}${numberWithCommas(emergencyFund)}`, 'info');
+        }
+
+        document.getElementById('prefillLoans').onclick = ()=>{data.loans = defaultData.loans.slice(); save(data)}
+        document.getElementById('prefillExp').onclick = ()=>{data.expenses = defaultData.expenses.slice(); save(data)}
+
+        // Currency change
+        document.getElementById('currency').onchange = (e) => {
+            data.currency = e.target.value;
+            save(data);
+        }
+
+        // export/import
+        document.getElementById('exportJson').onclick = ()=>{
+            const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href=url; a.download='debt-plan.json'; a.click(); URL.revokeObjectURL(url)
+            showNotification('JSON exported successfully!');
+        }
+        
+        // Export CSV
+        document.getElementById('exportCsv').onclick = () => {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            
+            // Add loans data
+            csvContent += "Loans\n";
+            csvContent += "Name,Type,Outstanding,EMI,Interest Rate,Due Date\n";
+            data.loans.forEach(loan => {
+                csvContent += `"${loan.name}",${loan.type},${loan.amount},${loan.emi},${loan.interest||0},${loan.dueDate||''}\n`;
+            });
+            
+            // Add expenses data
+            csvContent += "\nExpenses\n";
+            csvContent += "Name,Category,Amount,Completed\n";
+            data.expenses.forEach(expense => {
+                csvContent += `"${expense.name}",${expense.category},${expense.amount},${expense.completed ? 'Yes' : 'No'}\n`;
+            });
+            
+            // Add summary data
+            csvContent += "\nSummary\n";
+            csvContent += "Category,Amount\n";
+            csvContent += `Total EMIs,${data.loans.reduce((sum, loan) => sum + Number(loan.emi || 0), 0)}\n`;
+            csvContent += `Total Expenses,${data.expenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0)}\n`;
+            csvContent += `Salary,${data.salary}\n`;
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "debt-plan.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showNotification('CSV exported successfully!');
+        }
+        
+        // Download HTML
+        document.getElementById('downloadHtml').onclick = () => {
+            // Create a clone of the current page
+            const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Expenses & Debt Planner - ${new Date().toLocaleDateString()}</title>
+    <style>
+        ${document.querySelector('style').innerHTML}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>Monthly Expenses & Debt Planner</h1>
+                <div class="subtitle">Snapshot taken on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</div>
+            </div>
+        </header>
+
+        <div class="layout">
+            <div>
+                <div class="card">
+                    <div class="section-title">Salary (in-hand / month)</div>
+                    <div class="stat-value">${getCurrencySymbol()}${numberWithCommas(data.salary)}</div>
+                </div>
+            </div>
+
+            <div>
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                        <div>
+                            <div class="section-title">Overview</div>
+                            <div class="muted">Totals, surplus and recommended allocations</div>
+                        </div>
+                        <div class="pill" id="monthLabel">Monthly</div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Total EMIs</div>
+                            <div class="stat-value">${getCurrencySymbol()}${numberWithCommas(data.loans.reduce((sum, loan) => sum + Number(loan.emi || 0), 0))}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Monthly Expenses</div>
+                            <div class="stat-value">${getCurrencySymbol()}${numberWithCommas(data.expenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0))}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Total Outflow</div>
+                            <div class="stat-value">${getCurrencySymbol()}${numberWithCommas(data.loans.reduce((sum, loan) => sum + Number(loan.emi || 0), 0) + data.expenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0))}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Salary (in-hand)</div>
+                            <div class="stat-value">${getCurrencySymbol()}${numberWithCommas(data.salary)}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Surplus</div>
+                            <div class="stat-value ${data.salary - (data.loans.reduce((sum, loan) => sum + Number(loan.emi || 0), 0) + data.expenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0)) >= 0 ? 'positive' : 'negative'}">
+                                ${getCurrencySymbol()}${numberWithCommas(data.salary - (data.loans.reduce((sum, loan) => sum + Number(loan.emi || 0), 0) + data.expenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0)))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 20px">
+                    <div class="section-title">Loans & Expenses</div>
+                    <div class="muted" style="margin-bottom: 12px">Current loans and expenses</div>
+                    
+                    <table id="loanTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Outstanding</th>
+                                <th>EMI</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.loans.map(loan => `
+                                <tr>
+                                    <td>${loan.name}</td>
+                                    <td>${loan.type}</td>
+                                    <td>${getCurrencySymbol()}${numberWithCommas(loan.amount)}</td>
+                                    <td>${getCurrencySymbol()}${numberWithCommas(loan.emi)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+
+                    <table id="expTable" style="margin-top: 16px">
+                        <thead>
+                            <tr>
+                                <th>Completed</th>
+                                <th>Expense</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.expenses.map(expense => `
+                                <tr>
+                                    <td>${expense.completed ? '✓' : ''}</td>
+                                    <td class="${expense.completed ? 'expense-completed' : ''}">${expense.name}</td>
+                                    <td>${expenseCategories[expense.category]?.icon || ''} ${expense.category}</td>
+                                    <td class="${expense.completed ? 'expense-completed' : ''}">${getCurrencySymbol()}${numberWithCommas(expense.amount)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
+            
+            const blob = new Blob([htmlContent], {type: 'text/html'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `debt-plan-${new Date().toISOString().split('T')[0]}.html`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showNotification('HTML downloaded successfully!');
+        }
+
+        document.getElementById('importJson').onclick = ()=> document.getElementById('fileIn').click()
+        document.getElementById('fileIn').onchange = (e)=>{
+            const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = ()=>{try{data = JSON.parse(r.result); save(data); alert('Imported')}catch(err){alert('Invalid JSON')}}; r.readAsText(f)
+        }
+
+        // Tab functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs and contents
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab and corresponding content
+                tab.classList.add('active');
+                document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+            });
+        });
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            // Filter loans
+            document.querySelectorAll('#loanTable tbody tr').forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+            
+            // Filter expenses
+            document.querySelectorAll('#expTable tbody tr').forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        // Theme toggle
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            data.settings.darkMode = !data.settings.darkMode;
+            save(data);
+        });
+
+        // Investment calculator
+        document.getElementById('calculateInvestment').addEventListener('click', () => {
+            const amount = Number(document.getElementById('investmentAmount').value) || 0;
+            const years = Number(document.getElementById('investmentYears').value) || 0;
+            const returnRate = Number(document.getElementById('investmentReturn').value) || 0;
+            
+            if (amount <= 0 || years <= 0 || returnRate <= 0) {
+                showNotification('Please enter valid values for all fields', 'danger');
+                return;
+            }
+            
+            const monthlyRate = returnRate / 100 / 12;
+            const months = years * 12;
+            const futureValue = amount * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
+            const totalInvestment = amount * months;
+            const totalReturn = futureValue - totalInvestment;
+            
+            document.getElementById('investmentResult').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Future Value</div>
+                    <div class="stat-value positive">${getCurrencySymbol()}${numberWithCommas(Math.round(futureValue))}</div>
+                    <div class="muted">Total Investment: ${getCurrencySymbol()}${numberWithCommas(totalInvestment)}</div>
+                    <div class="muted">Estimated Returns: ${getCurrencySymbol()}${numberWithCommas(Math.round(totalReturn))}</div>
+                </div>
+            `;
+        });
+
+        // Simulation engine (simplified: pays EMI + extra to first non-zero debt in priority order)
+        function runSimulation(extra){
+            // copy loans
+            const loans = data.loans.map(l=>({
+                name: l.name,
+                type: l.type,
+                amount: Math.max(0,Number(l.amount)||0),
+                emi: Math.max(0,Number(l.emi)||0),
+                priority: loanTypes[l.type]?.priority || 6
+            }))
+            
+            // Sort by priority
+            loans.sort((a,b) => a.priority - b.priority)
+
+            const months = []
+            let month=0
+            while(loans.some(l=>l.amount>0) && month<240){
+                month++
+                let extraBudget = extra
+                // pay each loan its EMI first
+                loans.forEach(l=>{
+                    if(l.amount<=0) return;
+                    const pay = Math.min(l.amount, l.emi)
+                    l.amount -= pay
+                })
+                // apply extra budget to highest priority (first non-zero)
+                for(const l of loans){
+                    if(l.amount>0 && extraBudget>0){
+                        const pay = Math.min(l.amount, extraBudget)
+                        l.amount -= pay
+                        extraBudget -= pay
+                    }
+                }
+                const totalOutstanding = loans.reduce((s,l)=>s + Math.max(0,Math.round(l.amount)),0)
+                months.push({month,totalOutstanding,loans:JSON.parse(JSON.stringify(loans))})
+            }
+            return months
+        }
+
+        document.getElementById('runSim').onclick = ()=>{
+            const extra = Number(document.getElementById('extraPay').value) || 0
+            const months = runSimulation(extra)
+            // update chart
+            debtChart.data.labels = months.map(m=>'M'+m.month)
+            debtChart.data.datasets[0].data = months.map(m=>m.totalOutstanding)
+            debtChart.update()
+
+            // summary
+            const last = months[months.length-1]
+            document.getElementById('simSummary').innerHTML = `<div class="stat-card"><div class="stat-label">Simulation completed for ${months.length} months</div><div class="stat-value">Outstanding at end: ${getCurrencySymbol()}${numberWithCommas(last?last.totalOutstanding:0)}</div></div>`
+
+            // closure table
+            closureTbody.innerHTML = ''
+            if(months.length>0){
+                const firstLoanNames = months[0].loans.map(l=>l.name)
+                firstLoanNames.forEach((name, idx)=>{
+                    // find first month when that loan.amount becomes 0
+                    let closeMonth = null
+                    for(const m of months){
+                        if(m.loans[idx].amount<=0){closeMonth = m.month; break}
+                    }
+                    const tr = document.createElement('tr')
+                    tr.innerHTML = `<td>${name}</td><td>0</td><td>${closeMonth||'—'}</td><td>${closeMonth?closeMonth:'—'}</td>`
+                    closureTbody.appendChild(tr)
+                })
+            }
+        }
+
+        // Payment reminder check on page load
+        function checkPaymentReminders() {
+            const today = new Date();
+            const currentDate = today.getDate();
+            
+            const dueLoans = data.loans.filter(loan => 
+                loan.dueDate && (loan.dueDate - currentDate <= 3) && (loan.dueDate - currentDate >= 0)
+            );
+            
+            if (dueLoans.length > 0) {
+                const loanNames = dueLoans.map(loan => loan.name).join(', ');
+                showNotification(`Reminder: ${loanNames} due soon!`, 'warning');
+            }
+        }
+
+        // initial render
+        initCharts();
+        render();
+        checkPaymentReminders();
+    </script>
 </body>
 </html>
